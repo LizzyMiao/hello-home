@@ -1,0 +1,151 @@
+1. 服务器清理连续内存。给一个integer数组arr，和一个integer k。在数组中删掉k个连续元素, 问剩下的元素之和的最小值是多少?
+例子: arr = [7, 3, 6, 1], k = 2
+删除7, 3, 剩 6, 1，sum = 7
+删除3, 6, 剩 7, 1, sum = 8
+删除6, 1, 剩7, 3, sum = 10
+最小值是7
+解法：先算出prefix sum array，和suffix sum array，然后 curSum = prefixSum[i - 1] + suffixSum[i + k]，然后求global maximum sum。
+
+
+2. 给一个integer数组arr，判断有多少个subarray是consecutive decreasing，consecutive decreasing是指这些相邻元素，后一个 = 前一个 - 1。
+例子：arr = [4, 3, 2, 5, 9, 8]
+符合条件的subarray有 [4], [4, 3], [4, 3, 2], [3], [3, 2], [2], [5], [9], [9, 8], [8]，所以答案是10。
+解法：先把arr分成consecutive decreasing的subarray，记录每个s‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍ubarray的长度，长度为n的subarray有 n * (n + 1) / 2种case。
+上面的例子，先分成[4, 3, 2], [5], [9, 8]，记录所有的长度[3, 1, 2]，再对每个长度n求n * (n + 1) / 2，最后相加。
+
+
+
+
+第一题：merge two sorted list (俩array, 已经 sorted 好)。 第二题 (利口五十六), merge interv‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍als.
+
+
+
+系统设计
+第一轮：30分钟BQ，Coding题：写一个event publish / scribe system，publisher可以给多人发event。有点像系统设计，又有点像OOB，我说要用个message queue，他说简单点可以了。最后写了四个class，Event，Publisher，Subscriber，EventRegistrationSystem。只有第四个class写了点code，其他几个都是interface。非常没谱。
+系统设计
+第二轮：Coding题：Course Scheduling II，改成job scheduling。唯一的算法题，竟然跟电面还是同一道题。我这个月力扣白刷了。于是我慢慢写慢慢讲。30分钟后，他突然说我只有10分钟了，还要问BQ。赶紧写完，有个附加题，要parallel处理没有dependancy的job，简单，搞定。20分钟BQ。
+系统设计
+第三轮：30分钟BQ，两个manager。manager果然问得好细，business impact，decision logic等等。Coding：写一个为视频网站放广告的程序。啥要求都没有。还是手写的题目，看得我着急。然后我一点点问，视频插广告的频率，选广告的逻辑，最后写了一个HashMap加PriorityQueue的数据结构存广告，似乎答到了甜点。然后问我怎么scale，我说广告当然放到数据库了，多机调用，存到memory了，但是没来得及说根据关键字把广告分区存，他就打断我，让我问问题了。
+第四轮：纯BQ，就三个问题，问了45分钟，也是个manager面，也问得细，我也答得多。但是感觉我组织语言能力还要加强，我老是铺垫太多，然后讲一大段被他打断要我重复。
+第五轮：国人面。BQ。然后系统设计。AMAZON居然没有一个可有共享画图的东西，最后我用了个Google doc。题目是Scalable Job Scheduler，也是没啥条件。这个我没看过呀没做过，System Design Interview两本书都没有。开始很蒙。使劲写字，画各种框框。写着写着想起我以前做过一个Kafka subscriber的程序就按那个讲了。侧重在API设计。后来他问我Job Scheduler是不是需要多个，我才想到Job Allocator和Scheduler应该分离，‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍然后中间加个message queue，赶紧把经典流程图加上。下来搜了一下，看到这个，觉得我要是早看了就好了，但是似乎我答得也差不多。
+
+
+
+
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=918892&highlight=%D1%C7%C2%E9 
+coding:
+系统设计
+问：OOD，写一个movie log analysis system，给一堆prime video的log，上面包含movie Id, timestamp, isPlaying (not sorted by time)，输出每个video播放的每个时间段(periods)。log可能是残缺的(有starting event但ending event, or vice versa）
+答：先sort一次那些event，然后用Maps去store每个video的starting timestamp和已经generate成功的periods，问make不make sense，码，自答复杂度
+follow up 1: 这种做法有没有什么corner cases是不能cover的
+答：如果一个video被播放了好几次，say，logs：start1, end1, start2, end2.....，如果end1 无了那么记录的时长就会是start1 -> end2
+follow up 2: 一开始用sort，你说复杂度是O(NlogN), 有没有什么方法能提升一点点
+答：别sort整个input，给每个video分配一个PriorityQueue, event只丢进对应video的PQ, 复杂度就是N*log(N/M), N是log的总数，M是movie的数量
+follow up 3: 注意到我用的是ArrayList而不是LinkedList，当log数量很多很多时候会不会溢出ArrayList的最长长度
+答：您说的非常对，然后就把俩ArrayList改成了LinkedList，但您我都知道，面对这么庞大的数据集时候，不可能写这么toy的程序来处理，起码也得用MapReduce吧，实际应用中应该根本不会考虑是不是LinkedList这种问题
+白大叔觉得有道理但是有点尴尬，跟南亚姐解释说我们面试应聘者的东西跟实际工程的东西都是不一样的，我们只是考察一下candidate的基本能力。。。然后魔幻的部分来了，白大叔说：既然你提到了MapReduce，那你来介绍一下怎么用MapReduce来处理这个问题吧。。。
+我答：MapReduce本质上是distributed-ly处理那些庞大的数据并且把结果distributed-ly写进dis‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍tributed storage，既然要说明白MapReduce，我们应该先整明白distributed storage/database。然后简单介绍了一下Google File System和BigTable，然后描述了MapReduce的基本架构(master node, worker node)以及他们应该通过map, fillter, shuffle, reduce这些步骤处理这个OOD。反问：这是我读paper的textbook答案，我觉得当下真正工业界（你们组）应该不是这么做的，可以介绍一下你们怎么做吗？
+白大叔答：我们的数据都存在DynamoDB里，我们晚上会有batch job用比较普遍的distributed processing的方法去处理这些log，但是现在log生成的速度和量都在肉眼可见增加，有时候一晚上甚至都不能处理完前一天的log
+我答：Google有几篇paper讲怎么把这种log processing的batch job和latency sensitive的jobs放在一起提高computation的效率，你们的infra说不定也可以优化这样你们的batch job就能一直跑了。
+白大叔：make sense，然后有聊了一通，此时我已经没有在听了
+反向BQ然后结束
+
+
+
+
+
+
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=916824&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+On-site (4轮)：
+（1）2个bq + 套壳 meeting room 2 (力扣而雾散)。
+（2）2个bq + LFU...
+(3) 2个bq + system design. （给你一个内部API. get list of items... 然后要求你返回一个list 包含（1）list of available items (2) list of wanted but not available items）要求：(1) minimum latency; (2) high accuracy .. 大概围绕cache 聊了一下。
+(4)2个bq + 拓扑排序 （给一堆packages. 然后每个packages 都有它对应的dependent package...比如你要安装A.. 你需要先安装 C, E F... 现在给你一个starting package, 让你打出来安装顺序。）套壳力扣而灵气。
+一定要好好准备bq 啊。尽量不要重复。
+求加米。祝大家在职的工作顺利，找工作的顺利早日上岸。
+补充内容 (2022-08-10 09:03 +8:00):
+很多同学在下边问 system design 再讲详细一点。我不确定自己的回答是不是"好的答案"。也怕给大家带跑偏了。我想说的是， 在实际面试过程中拿到的问题，比我发出来的还模糊。就一句话，给你一个api. 让你返回俩list. 如果不是面试官上来先说这轮是system desiogn, 我都没想到这是个system design 。requirements 都是自己问出来的。而且每个面试官想听的点都不一样。我在这写一个300字的答案不一定会帮助到你 （即便你被问到了一摸一样的问题）。我大概率感觉这个问题是面试官随便想的一个问题。如果coding 可以通过背答案的话。那么system design 没法通过背答案背出来的。你说一点，面试官会继续让你dive deep。 如果碰到自己在那个面试官感兴趣的area的储备量不到，其实是个negative / red flag...
+Anyway 吧。我就这个问题分享一下我当时的回答。(别给大家带跑偏了。觉得有帮忙，您给帮忙撒点米。觉得没用，就划走。)
+- 一上来，面试官就是，我给你这个API (get_list_of_items)。 你给我返回俩lists (available & non-available). 我也是一头懵。这跟system design 有啥关系？我就先说一下【知点1】如果是个单线程的环境，或者single machine, 我准备怎么去解决。然后我主动说了，一旦数据量上来之后，可能有哪些challenges. 因为说完single machine 上怎么做，此时我还是不清楚这个到底跟system design 有啥关系。【知识点2】所以我主动问了，在数据量大到single machine 做不了的情况下，我们需要注意什么？就是non-functional requirements 里几个点[scalable etc...]。 此时面试官回复，我们需要 (1) low latency; (2) high accuracy;
+- 根据面试官的提示 （既然low latency） 那肯定不能每次都call 你这个api..需要把返回的信息cache 在一个什么地方。然后我提到了cache. 然后跟面试官confirm, 我是不是在right track. 面试官表示你继续讲，这个时候，我讲了 (1) 准备把哪些东西放cache 以及为什么； (2) cache 的替换策略；(3) cache 多久refresh/invalidate 一次。因为high-accuracy 也是一个requirements.
+- 面试官继续深挖，要求把第二点和第三个点展开讲讲 (cache 的替换策略, cache refresh frequency).. 准备怎么设计。cache 的替换策略，我大概说了最native 的两种 (lru, lfu). 然后cache. 怎么设计成分布式。item A ~ C 去machine1, item D ~ H 去machineX 找， 怎么 split... 然后 cache 的refresh frequency,
+补充内容 (2022-08-10 09:11 +8:00):
+给大家总结一‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍下。我自己准备system design 的一些小心得：
+【tip 1】碰上一个很模糊的， 或者完全没头绪 where to start. 感觉面试官“不按常理”出牌. 比如，我准备很久topK.就等你一句“请开始你的表演”。。你给我来一个这。。感觉完全没法下手。。
+解决办法： 你大可以先说，在单线程，或者single-machine， 或者数据规模量比较小的情况（全部可以放进memory）， 你准备怎么做。。可以写一些简单的code.. 就是尽量别冷场。
+【tip 2】大家在做coding 的时候。可以问面试官有没有时空复杂度的要求。在system design, 你需要去clarify 清楚 functional/ non-functional requirements.. 就是旁敲侧击地问，“你到底要我设计个啥”。
+【tip 3】注意交流。你可以时不时地问，am i on the right track? 确保没跑偏。
+【tip 4】 我觉得是最重要的。如果你感觉自己的储备量，还不到面试官随便抛一个概念出来，你都能应答如流的话，你就拼命地把他往你自己最熟悉的area 引。。引到你自己confortable zone, 你就可以开始发挥了。。
+
+
+
+
+
+
+
+
+
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=916156&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+之前准备面试的时候地里面经帖帮助了我很多，现在来回馈一下地里。
+第一轮：
+30min BQ: Tight ddl, Tell me about a time when you learn something new and how it benefits your work. 再加一些关于这两个BQ你给出例子的follow up
+30min Coding: 利口气凌思，利口酒斯
+第二轮：
+30min BQ: Hardest project and how you finished it, Tell me about a time when you have conflict with someone.
+30min Coding: 蠡口儿灵期 + follow up
+第三轮：
+1h 纯BQ: Tell me about a time when you finish a project beyond your ownership, Tell me about a time when you receive negative feedback, Tell me about a time when you have to make a hard decision.....（只能回忆起这3个了，大概问了有7.8个问题加一堆follow up，但都是围绕16条LP来问的)
+‍‍‌‍‍‍‍‍‌‌‍‌‍
+第四轮：
+30min BQ: 15min 聊了聊简历和过去的一段工作经历, Tell me about a time when you have to make a decision without telling your manager + follow up.
+30min Coding: 藜扣尔留寺先写了最小堆的解，被要求优化不使用堆。
+面试前准备了几天的OOD结果居然没考，也算是运气比较好了
+
+
+
+
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=917614&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+
+第一轮BQ+system design，面试官是个director阿姨。问了30min BQ然后出了个system design，设计一个温度播报系统。大概是说城市里有很多sensor，现在需要设计一套系统collect data然后在网页上展示。大概聊了三部分data collection, data storage, presentation。涉及pull/push， sql/nosql, scale, monitoring等等。比如怎么确定一个sensor是坏掉了才一直发送‍‍‌‍‍‍‍‍‌‌‍‌‍‌‌‍‌‍新data，还是因为该地区气温确实长时间没有变动。
+第二轮find farthest smaller from right
+第三轮Implement QPS
+第四轮LRU
+
+
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=845445&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+一轮：
+bq： most challenging project，大概问了10分钟
+ood: linux file search, 因为有准备过，而且这题算ood里简单的，所以答得很全面，从core object到use case,再写代码，感觉面试官是满意的。然后进入反向bq，面完总共40分钟，还剩5分钟，说再见时候还祝我good luck with next 2 rounds
+二轮：一位aws的三哥，看起来有经验的样子，秃了，自己说在亚麻8年。这位老哥迟到了5分钟
+bq： tight ddl，time you take a risk ，大概问了15分钟
+coding： 一个矩阵的映射题，给你尺寸小的图片让你放大，就是把大小矩阵的数字对应过去，我边讲边写了一遍方法，说了复杂度。但是想的解法有bug，面试官说了个例子说明bug，我说是的，这个例子跑不通，我想一下怎么改，话刚说完面试官就开始直接上手改代码（其实这里还剩挺长时间，10分钟左右，他完全可以让我自己想一下），改了两行，然后口头跑了一遍自己的例子，说没问题了，我说我也觉得没问题了，复杂度和之前的是一样的，他把coding board 内容很快的全部剪切走，然后就进入反向bq。
+三轮：
+bq： most challenging project， how to deal with multi-tasks / ddl , 大概问了15分钟
+coding：利口：其八五，他用abcd给了个例子解释，让我自己定义输入，我就自己定义了一个int的adj matrix的graph输入，我说用先用int 0，1，2，3代表a,b,c,d这样，写完讲完之后，我问他graph是不是全联接的，如果是的话还可以优化一下。小哥不太愿意说话，我讲代码的全程很少说话，只是我每次询问能不能assume什么的时候回答ok，最后我写完分析完复杂度，问他怎么样， 他说it looks good to me.
+
+
+系统设计
+https://www.1point3acres.com/bbs/thread-717638-1-1.html
+https://posts.careerengine.us/p/5f5cf4dc6a2d03636b32ff8b
+parking lot
+
+
+面镜：
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=916740&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=911372&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=916286&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=916033&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+https://www.1point3acres.com/bbs/thread-914966-1-1.html
+https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=901465&highlight=%D1%C7%C2%E9%2B%C3%E6%BE%AD
+
+
+行为问题
+https://www.1point3acres.com/bbs/thread-483735-1-1.html
+https://1o24bbs.com/t/topic/12295
+
+
+领导力问题
+https://www.1point3acres.com/bbs/thread-895663-1-1.html
+
+
+
